@@ -49,7 +49,9 @@ jobs:
         shell: cmd
         run: |
           .venv\Scripts\python.exe -m SCons source version=%TECHVDA_VERSION% release=1 publisher=TECH-VDA version_build=%GITHUB_RUN_NUMBER%
+          if errorlevel 1 exit /b 1
           .venv\Scripts\python.exe -m SCons launcher userGuide changes keyCommands client version=%TECHVDA_VERSION% release=1 publisher=TECH-VDA version_build=%GITHUB_RUN_NUMBER%
+          if errorlevel 1 exit /b 1
 
       - name: Upload installer
         uses: actions/upload-artifact@v4

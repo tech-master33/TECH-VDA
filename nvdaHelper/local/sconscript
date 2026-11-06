@@ -106,6 +106,7 @@ localLib = env.SharedLibrary(
 		"oleaut32",
 		"rpcrt4",
 		"shlwapi",
+		"runtimeobject",
 		detoursLib,
 	],
 )
