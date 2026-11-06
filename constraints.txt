@@ -1,2 +1,5 @@
 # Pillow is an implicit dependency and requires zlib and jpeg by default, but we don't need it
 Pillow==10.3.0 -C "zlib=disable" -C "jpeg=disable"
+
+# py2exe 0.13.0.2 expects charset_normalizer.md__mypyc, which is absent in charset-normalizer 3.4+
+charset-normalizer==3.3.2
