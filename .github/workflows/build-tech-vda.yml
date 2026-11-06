@@ -1,0 +1,61 @@
+name: Build TECH-VDA
+
+# Builds the TECH-VDA installer on GitHub's Windows runner, which already has
+# Visual Studio 2022, the Windows SDK, ATL, and the C++ toolchain.
+# No local Visual Studio installation is required.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - tech-vda
+    tags:
+      - "tech-vda-*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 120
+
+    env:
+      TECHVDA_VERSION: 2024.4.2-techvda
+      # sconstruct refuses to run unless it is inside the NVDA venv.
+      VIRTUAL_ENV: ${{ github.workspace }}\.venv
+      NVDA_VENV: ${{ github.workspace }}\.venv
+
+    steps:
+      - name: Check out source and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python 3.11 (32-bit)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: "x86"
+
+      - name: Create build environment
+        shell: cmd
+        run: |
+          "%pythonLocation%\python.exe" -m venv .venv
+          .venv\Scripts\python.exe -m pip install --upgrade pip
+          .venv\Scripts\python.exe -m pip install -r requirements.txt
+
+      - name: Build TECH-VDA
+        shell: cmd
+        run: |
+          .venv\Scripts\python.exe -m SCons source version=%TECHVDA_VERSION% release=1 publisher=TECH-VDA version_build=%GITHUB_RUN_NUMBER%
+          .venv\Scripts\python.exe -m SCons launcher userGuide changes keyCommands client version=%TECHVDA_VERSION% release=1 publisher=TECH-VDA version_build=%GITHUB_RUN_NUMBER%
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: TECH-VDA-${{ github.run_number }}
+          path: |
+            output/tech-vda*.exe
+            output/tech-vda*.zip
+          if-no-files-found: error
